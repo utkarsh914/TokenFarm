@@ -84,32 +84,71 @@ class App extends Component {
 
 
 
+	verifyForm = (amount, operation) => {
+		amount = parseInt(amount)
+		let alert = "", isvalid = false
+
+		if (operation == 'unstaking') {
+			if (parseInt(this.state.stakingBalance) === 0)
+				alert = "You have not staked any tokens!"
+			else isvalid = true
+		}
+		else if (amount === 0) {
+			alert = "Amount should be non-zero!"
+		}
+		else if (amount > parseInt(this.state.daiTokenBalance)) {
+			alert = "Amount can't be greater than your balance!"
+		}
+		else {
+			isvalid = true
+		}
+
+		this.setState({ alert })
+		return isvalid
+	}
+
+
+
 	stakeTokens = async (amount) => {
 		this.setState({ loading: true })
 
-		const result_0 = await this.state.daiToken.methods
-			.approve(this.state.tokenFarm._address, amount).send({ from: this.state.account })
+		try {
+			let result = await this.state.daiToken.methods
+				.approve(this.state.tokenFarm._address, amount).send({ from: this.state.account })
 			
-		const result =	await this.state.tokenFarm.methods
-			.stakeTokens(amount).send({ from: this.state.account })
-		
-		const { daiTokenBalance, dappTokenBalance, stakingBalance } =
-			result.events.Staked.returnValues
-		// console.log({ daiTokenBalance, dappTokenBalance, stakingBalance })
-		this.setState({ daiTokenBalance, dappTokenBalance, stakingBalance, loading: false })
+			result =	await this.state.tokenFarm.methods
+				.stakeTokens(amount).send({ from: this.state.account })
+			
+			const { daiTokenBalance, dappTokenBalance, stakingBalance } =
+				result.events.Staked.returnValues
+			// console.log({ daiTokenBalance, dappTokenBalance, stakingBalance })
+			this.setState({ daiTokenBalance, dappTokenBalance, stakingBalance, loading: false })
+		}
+
+		catch(e) {
+			console.log(e)
+			this.setState({ loading: false })
+		}
 	}
+
 
 
 	unstakeTokens = async () => {
 		this.setState({ loading: true })
-		
-		const result = await this.state.tokenFarm.methods
-			.unstakeTokens().send({ from: this.state.account })
-		
-		const {daiTokenBalance, dappTokenBalance, stakingBalance} =
-			result.events.Unstaked.returnValues
-		// console.log({daiTokenBalance, dappTokenBalance, stakingBalance})
-		this.setState({ daiTokenBalance, dappTokenBalance, stakingBalance, loading: false })
+
+		try {
+			const result = await this.state.tokenFarm.methods
+				.unstakeTokens().send({ from: this.state.account })
+			
+			const {daiTokenBalance, dappTokenBalance, stakingBalance} =
+				result.events.Unstaked.returnValues
+			// console.log({daiTokenBalance, dappTokenBalance, stakingBalance})
+			this.setState({ daiTokenBalance, dappTokenBalance, stakingBalance, loading: false })
+		}
+		catch(e) {
+			console.log(e)
+			this.setState({ loading: false })
+		}
 	}
 
 
@@ -124,13 +163,27 @@ class App extends Component {
 			daiTokenBalance: '0',
 			dappTokenBalance: '0',
 			stakingBalance: '0',
-			loading: true
+			loading: true,
+			alert: ""
 		}
 	}
 
 
 
 	render() {
+
+		let alert = null
+		if (this.state.alert && !this.state.loading) {
+			alert =
+			<div className="alert alert-danger alert-dismissible fade show" role="alert">
+				{this.state.alert}
+				{/* <button type="button" className="close" data-dismiss="alert" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button> */}
+			</div>
+		}
+
+
 		let content
 		if (this.state.loading) {
 			content =
@@ -147,6 +200,7 @@ class App extends Component {
 				stakingBalance = {this.state.stakingBalance}
 				stakeTokens={this.stakeTokens}
 				unstakeTokens={this.unstakeTokens}
+				verifyForm={this.verifyForm}
 			/>
 		}
 
@@ -165,6 +219,7 @@ class App extends Component {
 								</a>
 
 								{content}
+								{alert}
 
 							</div>
 						</main>

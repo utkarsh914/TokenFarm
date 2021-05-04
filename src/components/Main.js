@@ -17,12 +17,14 @@ class Main extends Component {
 		let amount
 		amount = this.state.value.toString()
 		amount = window.web3.utils.toWei(amount, 'Ether')
-		await this.props.stakeTokens(amount)
+		if (this.props.verifyForm(amount, 'staking') === true)
+			await this.props.stakeTokens(amount)
 	}
 
 	handleUnstakeTokens = async (e) => {
 		e.preventDefault()
-		await this.props.unstakeTokens()
+		if (this.props.verifyForm(0, 'unstaking') === true)
+			await this.props.unstakeTokens()
 	}
 	
 
