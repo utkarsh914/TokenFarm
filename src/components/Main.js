@@ -3,6 +3,29 @@ import dai from '../dai.png'
 
 class Main extends Component {
 
+	constructor(props) {
+		super(props)
+		this.state = { value: 0 }
+	}
+
+	handleChange = (e) => {
+		this.setState({ value: e.target.value })
+	}
+
+	handleStakeTokens = async (e) => {
+		e.preventDefault()
+		let amount
+		amount = this.state.value.toString()
+		amount = window.web3.utils.toWei(amount, 'Ether')
+		await this.props.stakeTokens(amount)
+	}
+
+	handleUnstakeTokens = async (e) => {
+		e.preventDefault()
+		await this.props.unstakeTokens()
+	}
+	
+
 	render() {
 		return (
 			<div id="content" className="mt-3">
@@ -23,16 +46,9 @@ class Main extends Component {
 				</table>
 
 				<div className="card mb-4" >
-
 					<div className="card-body">
 
-						<form className="mb-3" onSubmit={async (event) => {
-								event.preventDefault()
-								let amount
-								amount = this.input.value.toString()
-								amount = window.web3.utils.toWei(amount, 'Ether')
-								await this.props.stakeTokens(amount)
-							}}>
+						<form className="mb-3" onSubmit={this.handleStakeTokens}>
 							
 							<div>
 								<label className="float-left"><b>Stake Tokens</b></label>
@@ -43,10 +59,10 @@ class Main extends Component {
 
 							<div className="input-group mb-4">
 								<input
-									type="text"
-									ref={(input) => { this.input = input }}
+									type="number"
+									value={this.state.value}
+									onChange={this.handleChange}
 									className="form-control form-control-lg"
-									placeholder="0"
 									required />
 								<div className="input-group-append">
 									<div className="input-group-text">
@@ -62,12 +78,10 @@ class Main extends Component {
 						<button
 							type="submit"
 							className="btn btn-link btn-block btn-sm"
-							onClick={async (event) => {
-								event.preventDefault()
-								await this.props.unstakeTokens()
-							}}>
+							onClick={this.handleUnstakeTokens}>
 								UN-STAKE...
 						</button>
+					
 					</div>
 				</div>
 
